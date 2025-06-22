@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Clínica Vitalis - Inicio</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Clínica Médica Vitalis</h1>
+    <p>Tu salud, nuestra prioridad</p>
+  </header>
+  <nav>
+    <a href="index.html">Inicio</a>
+    <a href="citas.html">Agendar Cita</a>
+    <a href="historial.html">Historial</a>
+    <a href="atencion-medica.html">Atencion</a>
+  </nav>
+  <main>
+    <section>
+      <h2>¿Quiénes somos?</h2>
+      <p>Somos una clínica comprometida con la salud de nuestros pacientes, ofreciendo atención médica de excelencia en distintas especialidades.</p>
+    </section>
+    <section>
+      <h2>Mensaje del Director</h2>
+      <p>“Nuestra misión es cuidar a cada persona con calidez, tecnología y compromiso humano. Gracias por confiar en nosotros.”</p>
+    </section>
+    <section>
+      <h2>Contacto</h2>
+      <p>📍 Dirección: Av. Salud 1234, Santiago</p>
+      <p>📞 Teléfono: +56 9 8765 4321</p>
+      <p>📧 Correo: contacto@clinicavitalis.cl</p>
+    </section>
+    <section>
+      <h2>Nuestras Instalaciones</h2>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/68/Hospital_clinico_UNC.jpg" alt="Edificio Clínica" style="width:100%;max-width:600px;border-radius:8px;">
+    </section>
+  </main>
+
+
+
+<script>
+  window.addEventListener("load", () => {
+    const nav = document.querySelector("nav");
+    const token = localStorage.getItem("token");
+
+    const btn = document.createElement("a");
+    btn.href = token ? "#" : "login.html";
+    btn.className = "login-btn";
+    btn.innerText = token ? "🔓 Cerrar Sesión" : "🔐 Iniciar Sesión";
+    btn.onclick = function(e) {
+      if (token) {
+        localStorage.removeItem("token");
+        location.reload();
+      }
+    };
+    nav.appendChild(btn);
+  });
+</script>
+
+</body>

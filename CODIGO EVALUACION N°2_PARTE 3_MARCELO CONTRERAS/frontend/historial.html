@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Historial Clínico | Vitalis</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Clínica Médica Vitalis</h1>
+  </header>
+  <nav>
+    <a href="index.html">Inicio</a>
+    <a href="citas.html">Agendar Cita</a>
+    <a href="historial.html">Historial</a>
+    <a href="atencion-medica.html">Atencion</a>
+  </nav>
+  <main>
+    <h2>Historial Clínico</h2>
+    <form id="formHistorial">
+      <input type="text" id="pacienteIdHistorial" placeholder="ID Paciente">
+      <button type="submit">Ver Historial</button>
+    </form>
+    <div id="resultadoHistorial" class="historial-tarjetas"></div>
+  </main>
+  <script src="assets/js/script.js"></script>
+
+<script>
+  window.addEventListener("load", () => {
+    const nav = document.querySelector("nav");
+    const token = localStorage.getItem("token");
+
+    const btn = document.createElement("a");
+    btn.href = token ? "#" : "login.html";
+    btn.className = "login-btn";
+    btn.innerText = token ? "🔓 Cerrar Sesión" : "🔐 Iniciar Sesión";
+    btn.onclick = function(e) {
+      if (token) {
+        localStorage.removeItem("token");
+        location.reload();
+      }
+    };
+    nav.appendChild(btn);
+  });
+</script>
+</body>

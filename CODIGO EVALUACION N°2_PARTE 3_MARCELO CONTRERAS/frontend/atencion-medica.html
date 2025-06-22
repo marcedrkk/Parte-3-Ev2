@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Atenciones Médicas</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <nav>      
+    <a href="index.html">Inicio</a>
+    <a href="citas.html">Agendar Cita</a>
+    <a href="historial.html">Historial</a>
+  </nav>
+  <main>
+    <h1>👨‍⚕️ Panel Médico - Atenciones</h1>
+    <div id="verificacion"></div>
+
+    <section>
+      <h2>🆕 Registrar Nueva Atención Médica</h2>
+      <form id="formAtencion">
+        <input type="number" id="pacienteId" placeholder="ID del Paciente" required />
+        <input type="date" id="fecha" required />
+        <input type="text" id="diagnostico" placeholder="Diagnóstico" required />
+        <input type="text" id="tratamiento" placeholder="Tratamiento" required />
+        <button type="submit">Registrar Atención</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>📋 Atenciones del Día</h2>
+      <div id="listaAtenciones"></div>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener("load", () => {
+      const token = localStorage.getItem("token");
+      const nav = document.querySelector("nav");
+
+      const btn = document.createElement("a");
+      btn.href = "#";
+      btn.className = "login-btn";
+      btn.innerText = "🔓 Cerrar Sesión";
+      btn.onclick = function () {
+        localStorage.removeItem("token");
+        location.href = "index.html";
+      };
+      nav.appendChild(btn);
+
+      const payload = token ? JSON.parse(atob(token.split('.')[1])) : null;
+      if (!payload || payload.rol !== "medico") {
+        document.body.innerHTML = "<h2>❌ Acceso denegado. Solo para médicos.</h2>";
+        return;
+      }
+
+      const medicoId = payload.id;
+      async function cargarAtenciones() {
+        const contenedor = document.getElementById("listaAtenciones");
+        contenedor.innerHTML = "";
+
+        try {
+          const res = await fetch("http://localhost:3000/historial/medico/" + medicoId, {
+            headers: { "Authorization": "Bearer " + token }
+          });
+
+          if (!res.ok) {
+            throw new Error("Respuesta no exitosa del servidor");
+          }
+
+          const datos = await res.json();
+
+          if (!Array.isArray(datos)) {
+            contenedor.innerHTML = "<p>No se pudieron cargar atenciones.</p>";
+            return;
+          }
+
+          const hoy = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+          const hoyLista = datos.filter(d => d.fecha_atencion.startsWith(hoy));
+
+          if (hoyLista.length === 0) {
+            contenedor.innerHTML = "<p>📭 No hay atenciones registradas hoy.</p>";
+            return;
+          }
+
+          hoyLista.forEach((item) => {
+            const card = document.createElement("div");
+            card.className = "historial-card";
+            card.innerHTML = `
+              <p><strong>ID Paciente:</strong> ${item.id_paciente}</p>
+              <p><strong>Fecha:</strong> ${item.fecha_atencion}</p>
+              <p><strong>Diagnóstico:</strong> <input value="${item.diagnostico}" /></p>
+              <p><strong>Tratamiento:</strong> <input value="${item.tratamiento}" /></p>
+              <button onclick="editar(${item.id_historial}, this)">💾 Guardar</button>
+              <button onclick="eliminar(${item.id_historial})">🗑️ Eliminar</button>
+            `;
+            contenedor.appendChild(card);
+          });
+
+        } catch (error) {
+          console.error("❌ Error al obtener las atenciones:", error);
+          contenedor.innerHTML = "<p>❌ Error al cargar los datos del servidor.</p>";
+        }
+      }
+
+
+      document.getElementById("formAtencion")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const datos = {
+          pacienteId: parseInt(document.getElementById("pacienteId").value),
+          medicoId,
+          fecha: document.getElementById("fecha").value,
+          diagnostico: document.getElementById("diagnostico").value,
+          tratamiento: document.getElementById("tratamiento").value
+        };
+
+        const res = await fetch("http://localhost:3000/historial", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify(datos)
+        });
+
+        if (res.ok) {
+          alert("✅ Atención registrada");
+          cargarAtenciones();
+        } else {
+          alert("❌ Error al registrar");
+        }
+      });
+
+      window.editar = async (id, boton) => {
+        const card = boton.parentElement;
+        const diagnostico = card.querySelectorAll("input")[0].value;
+        const tratamiento = card.querySelectorAll("input")[1].value;
+
+        const res = await fetch("http://localhost:3000/historial/" + id, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify({ diagnostico, tratamiento })
+        });
+
+        if (res.ok) {
+          alert("✅ Atención actualizada");
+          cargarAtenciones();
+        } else {
+          alert("❌ Error al actualizar");
+        }
+      };
+
+      window.eliminar = async (id) => {
+        if (!confirm("¿Estás seguro de eliminar esta atención?")) return;
+
+        const res = await fetch("http://localhost:3000/historial/" + id, {
+          method: "DELETE",
+          headers: {
+            "Authorization": "Bearer " + token
+          }
+        });
+
+        if (res.ok) {
+          alert("🗑️ Atención eliminada");
+          cargarAtenciones();
+        } else {
+          alert("❌ Error al eliminar");
+        }
+      };
+
+      cargarAtenciones();
+    });
+  </script>
+</body>
+</html>
+
